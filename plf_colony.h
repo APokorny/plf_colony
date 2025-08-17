@@ -29,7 +29,6 @@
 #define PLF_INCLUDE_TOOLS
 #include "plf_tools.h"
 
-
 #include <algorithm> // std::fill_n, std::sort, std::swap
 #include <cassert>	// assert
 #include <cstring>	// memset, memcpy, size_t
