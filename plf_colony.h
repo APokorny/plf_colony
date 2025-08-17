@@ -25,6 +25,14 @@
 	#define PLF_COLONY_DEFINES // ie. No encapsulating unit/class has previously defined the compiler feature macros in plf_tools.h below, so allow this header to undefine them at it's end.
 #endif
 
+#ifdef PLF_COLONY_MODULE
+#define PLF_TYPE_TRAITS_SUPPORT
+#define PLF_MOVE_SEMANTICS_SUPPORT
+#define PLF_INITIALIZER_LIST_SUPPORT
+#define PLF_CPP20_SUPPORT
+#endif
+
+#ifndef PLF_COLONY_MODULE
 #define PLF_INCLUDE_UNINITIALIZED_TOOLS
 #define PLF_INCLUDE_TOOLS
 #include "plf_tools.h"
@@ -58,6 +66,15 @@
 	#include <ranges>
 
 
+	namespace plf
+	{
+		// For getting std:: overload for reverse_iterator to match colony iterators specifically (see bottom of header):
+		template <class T>
+		concept colony_iterator_concept = requires { typename T::colony_iterator_tag; };
+	}
+#endif
+
+#else
 	namespace plf
 	{
 		// For getting std:: overload for reverse_iterator to match colony iterators specifically (see bottom of header):

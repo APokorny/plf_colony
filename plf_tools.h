@@ -245,6 +245,7 @@
 #if (defined(PLF_INCLUDE_TOOLS) || defined(PLF_INCLUDE_UNINITIALIZED_TOOLS)) && !defined(PLF_TOOLS)  // uninitialized_tools uses plf::make_move_iterator, hence needs these tools
 	#define PLF_TOOLS
 
+  #ifndef PLF_COLONY_MODULE
 	#ifdef PLF_CPP20_SUPPORT
 		#include <memory> // to_address
 		#include <ranges>
@@ -254,6 +255,7 @@
 		#include <iterator> // move_iterator
 	#endif
 
+  #endif
 
 	namespace plf
 	{
@@ -395,6 +397,7 @@
 #if defined(PLF_INCLUDE_BIT_TOOLS) && !defined(PLF_BIT_TOOLS)
 	#define PLF_BIT_TOOLS // Persistent define so same functions don't get included twice
 
+  #ifndef PLF_COLONY_MODULE
 	#include <cstddef> // std::size_t
 
 	#ifdef PLF_CPP20_SUPPORT
@@ -403,6 +406,7 @@
 
 	#if defined(_MSC_VER)
 		#include <intrin.h> // _BitScanForward
+	#endif
 	#endif
 
 
@@ -564,9 +568,11 @@
 #if defined(PLF_INCLUDE_UNINITIALIZED_TOOLS) && !defined(PLF_UNINITIALIZED_TOOLS)
 	#define PLF_UNINITIALIZED_TOOLS
 
+  #ifndef PLF_COLONY_MODULE
 	#if defined(PLF_TYPE_TRAITS_SUPPORT) && defined(PLF_VOIDT_SUPPORT)
 		#include <type_traits> // void_t, false_type
 		#include <utility> // declval
+	#endif
 	#endif
 
 	// Note: plf::uninitialized_move relies on PLF_TOOLS for plf::make_move_iterator, hence <memory> is already included at this point
