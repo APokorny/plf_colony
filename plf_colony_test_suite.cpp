@@ -263,7 +263,6 @@ int main()
 					advance(first, dist1);
 					last = first;
 					advance(last, dist2);
-					if (last > d_colony.end()) last = d_colony.end();
 
 					const int dist = static_cast<int>(distance(first, last));
 
@@ -276,6 +275,28 @@ int main()
 				}
 
 				failpass("Positive distance overload fuzz-test", true);
+
+
+				for (int counter = 0; counter != 10000; ++counter)
+				{
+					const int dist1 = rand() % (d_size - 2), dist2 = rand() % ((d_size - 2) - dist1);
+					colony<int>::iterator first = d_colony.end(), last;
+					advance(first, -dist1);
+					last = first;
+					advance(last, -dist2);
+
+					const int dist = static_cast<int>(distance(last, first));
+
+					if (dist != dist2)
+					{
+						printf("Negative distance overload fuzz-test failed, real distance = %d, reported distance = %d, counter = %d, suite loop = %d", dist2, dist, counter, looper);
+						getchar();
+						abort();
+					}
+				}
+
+				failpass("Negative distance overload fuzz-test", true);
+
 
 
 				for (colony<int>::iterator current = d_colony.begin(), end = d_colony.end(); current!= end;)
@@ -1212,13 +1233,13 @@ int main()
 
 			colony<small_struct_non_trivial> ss_nt2;
 			ss_nt2.insert(5, ss);
-			
+
 			ss_nt = ss_nt2;
-			
+
 			failpass("Non-trivial type range-assign", ss_nt.size() == 5);
 
-			
-			
+
+
 			for (unsigned int loop_counter = 0; loop_counter != 50; ++loop_counter)
 			{
 				ss_nt.clear();
@@ -2352,7 +2373,7 @@ int main()
 
 		{
 			title2("range/fill insert partial recovery tests");
-			
+
 			colony<exceptions_test> i_colony;
 			exceptions_test input_data[10] = {6, 6, 6, 6, 4, 6, 6, 6, 6, 1};
 
@@ -2362,7 +2383,7 @@ int main()
 			}
 			catch(...)
 			{} // do nothing
-			
+
 			int accumulator = 0;
 			for (colony<exceptions_test>::iterator current = i_colony.begin(); current != i_colony.end(); ++current)
 			{
