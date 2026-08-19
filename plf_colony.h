@@ -2173,28 +2173,21 @@ private:
 
 
 
-	void remove_from_groups_with_erasures_list(const group_pointer_type group_pointer) PLF_NOEXCEPT
+	void remove_from_groups_with_erasures_list(const group_pointer_type group_to_remove) PLF_NOEXCEPT
 	{
-		if (group_pointer != erasure_groups_head)
+		if (group_to_remove != erasure_groups_head)
 		{
-			group_pointer->erasures_list_previous_group->erasures_list_next_group = group_pointer->erasures_list_next_group;
+			group_to_remove->erasures_list_previous_group->erasures_list_next_group = group_to_remove->erasures_list_next_group;
 
-			if (group_pointer->erasures_list_next_group != nullptr)
+			if (group_to_remove->erasures_list_next_group != NULL)
 			{
-				group_pointer->erasures_list_next_group->erasures_list_previous_group = group_pointer->erasures_list_previous_group;
+				group_to_remove->erasures_list_next_group->erasures_list_previous_group = group_to_remove->erasures_list_previous_group;
 			}
 		}
 		else
 		{
 			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
 		}
-	}
-
-
-
-	void remove_from_groups_with_erasures_list_if_necessary(const group_pointer_type group_pointer) PLF_NOEXCEPT
-	{
-		if (group_pointer->has_erasures()) remove_from_groups_with_erasures_list(group_pointer);
 	}
 
 
@@ -2354,7 +2347,11 @@ public:
 			begin_iterator.group_pointer->previous_group = NULL; // Cut off this group from the chain
 			// note: end iterator only needs to be changed if the deleted group was the final group in the chain ie. not in this case
 
-			remove_from_groups_with_erasures_list(it.group_pointer); // Not a back group, so will always have prior erasures at this point.
+			if (it.group_pointer->has_erasures()) // ie. was part of the linked list of groups with erasures.
+			{
+				remove_from_groups_with_erasures_list(it.group_pointer);
+			}
+
 			deallocate_group_remove_capacity(it.group_pointer);
 			return begin_iterator;
 		}
@@ -2362,7 +2359,11 @@ public:
 		{
 			it.group_pointer->next_group->previous_group = it.group_pointer->previous_group;
 			const group_pointer_type return_group = it.group_pointer->previous_group->next_group = it.group_pointer->next_group; // close the chain, removing this group from it
-			remove_from_groups_with_erasures_list(it.group_pointer); // As above, not a back group, hence will always have prior erasures at this point.
+
+			if (it.group_pointer->has_erasures())
+			{
+				remove_from_groups_with_erasures_list(it.group_pointer);
+			}
 
 			if PLF_CONSTEXPR (priority == performance)
 			{
@@ -2385,7 +2386,11 @@ public:
 		}
 		else // this is a non-first group and the final group in the chain
 		{
-			remove_from_groups_with_erasures_list_if_necessary(it.group_pointer); // Will not have prior erasures if only one element was ever inserted into this group and that was the element we erased.
+			if (it.group_pointer->has_erasures())
+			{
+				remove_from_groups_with_erasures_list(it.group_pointer);
+			}
+
 			it.group_pointer->previous_group->next_group = NULL;
 			end_iterator.group_pointer = it.group_pointer->previous_group; // end iterator needs to be changed as element supplied was the back element of the colony
 			end_iterator.element_pointer = end_iterator.group_pointer->past_back();
@@ -2571,7 +2576,11 @@ public:
 					destroy_group(current, current.group_pointer->past_back());
 				}
 
-				remove_from_groups_with_erasures_list_if_necessary(current.group_pointer);
+				if (current.group_pointer->has_erasures())
+				{
+					remove_from_groups_with_erasures_list(current.group_pointer);
+				}
+
 				total_size -= current.group_pointer->size;
 				const group_pointer_type current_group = current.group_pointer;
 				current.group_pointer = current.group_pointer->next_group;
@@ -2631,7 +2640,11 @@ public:
 
 				if ((total_size -= current.group_pointer->size) != 0) // ie. hive is not empty
 				{
-					remove_from_groups_with_erasures_list_if_necessary(current.group_pointer);
+					if (current.group_pointer->has_erasures())
+					{
+						remove_from_groups_with_erasures_list(current.group_pointer);
+					}
+
 					current.group_pointer->previous_group->next_group = current.group_pointer->next_group;
 
 					end_iterator.group_pointer = current.group_pointer->previous_group;
@@ -4716,7 +4729,7 @@ public:
 
 		#ifdef PLF_CPP20_SUPPORT
 			template <bool is_const_it>
-			std::strong_ordering operator <=> (const colony_iterator<is_const_it> &rh) const PLF_NOEXCEPT
+			std::strong_ordering operator <=> (const colony_iterator<is_const_it> &rh) const noexcept
 			{
 				return (element_pointer == rh.element_pointer) ? std::strong_ordering::equal : ((*this > rh) ? std::strong_ordering::greater : std::strong_ordering::less);
 			}
@@ -4805,7 +4818,7 @@ public:
 
 		// Advance implementation:
 
-		void advance(difference_type distance) // Cannot be PLF_NOEXCEPT due to the possibility of an uninitialized iterator
+		void advance(difference_type distance) // Cannot be noexcept due to the possibility of an uninitialized iterator
 		{
 			assert(group_pointer != NULL); // covers uninitialized colony_iterator && empty group
 
@@ -4917,12 +4930,12 @@ public:
 			}
 			else if (distance < 0)
 			{
-				if (group_pointer->previous_group == NULL && element_pointer == group_pointer->first_element()) return; // if we are at begin(), bound to that
-
 				distance = -distance;
 
+				if (group_pointer->previous_group == NULL && element_pointer == group_pointer->first_element()) return; // if we are at begin(), bound to that
+
 				// Special case for initial element pointer and initial group (we don't know how far into the group the element pointer is)
- 				if (element_pointer != group_pointer->past_back()) // Optimization: if end() is cheaply calculable (edge case, is one past end of block), and iterator == end(), skip this first section and treat current group like an intermediary group.
+ 				if (!(group_pointer->next_group == NULL && element_pointer == group_pointer->past_back())) // Optimization: if end() is cheaply calculable, and iterator == end() by that calculation, skip this first section and treat current group like intermediary group
 				{
 					if (!group_pointer->has_erasures())
 					{
@@ -5397,7 +5410,7 @@ public:
 
 		#ifdef PLF_CPP20_SUPPORT
 			template <bool is_const_it>
-			std::strong_ordering operator <=> (const colony_reverse_iterator<is_const_it> &rh) const PLF_NOEXCEPT
+			std::strong_ordering operator <=> (const colony_reverse_iterator<is_const_it> &rh) const noexcept
 			{
 				return (rh.current <=> current);
 			}
