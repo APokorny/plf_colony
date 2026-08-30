@@ -18,8 +18,12 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 module;
+import std;
+#define PLF_COLONY_MODULE 1
+#define PLF_CPP20_SUPPORT 1
 #include "plf_colony.h"
-export module plf.colony;
+export module plf_colony;
+export import std;
 export namespace plf {
 using plf::colony;
 using plf::limits;

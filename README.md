@@ -24,7 +24,7 @@ cpmaddpackage(URI "gh:mattreecebentley/plf_colony#${PLF_COLONY_VERSION}" DOWNLOA
 if(plf_colony_ADDED)
   add_library(plf_colony)
   target_sources(plf_colony PUBLIC FILE_SET CXX_MODULES 
-      BASE_DIRS ${plf_colony_SOURCE_DIR} FILES ${plf_colony_SOURCE_DIR}/plf_colony.cpp)
+      BASE_DIRS ${plf_colony_SOURCE_DIR} FILES ${plf_colony_SOURCE_DIR}/plf_colony.cppm)
   add_library(plf::colony ALIAS plf_colony)
 endif()
 ```
