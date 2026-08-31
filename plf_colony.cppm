@@ -20,7 +20,6 @@
 module;
 import std;
 #define PLF_COLONY_MODULE 1
-#define PLF_CPP20_SUPPORT 1
 #include "plf_colony.h"
 export module plf_colony;
 export import std;

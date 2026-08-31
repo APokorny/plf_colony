@@ -17,8 +17,6 @@
 // 	misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-
-
 #if !defined(PLF_COMPILER_DEFINES)
 	#define PLF_COMPILER_DEFINES // Persistent define, so one container containing another plf container doesn't cause re-definitions
 	// Compiler-specific defines:
@@ -326,7 +324,7 @@
 		// For converting the underlying skipfield storage * type to void * when the allocator supplies non-trivial pointers.
 		// The void * conversion is technically unnecessary since it will be implicitly converted when required, but it's more straightforward than having to identify the underlying storage type:
 		template <class source_pointer_type>
-		static PLF_CONSTFUNC void * void_cast(const source_pointer_type source_pointer) PLF_NOEXCEPT
+		inline PLF_CONSTFUNC void * void_cast(const source_pointer_type source_pointer) PLF_NOEXCEPT
 		{
 			return static_cast<void *>(PLF_TO_ADDRESS(source_pointer));
 		}
@@ -335,7 +333,7 @@
 
 		#ifdef PLF_MOVE_SEMANTICS_SUPPORT
 			template <class iterator_type>
-			static PLF_CONSTFUNC std::move_iterator<iterator_type> make_move_iterator(iterator_type it)
+			inline PLF_CONSTFUNC std::move_iterator<iterator_type> make_move_iterator(iterator_type it)
 			{
 				return std::move_iterator<iterator_type>(std::move(it));
 			}
@@ -356,7 +354,7 @@
 			namespace ranges
 			{
 				struct from_range_t {};
-				constexpr from_range_t from_range;
+				inline constexpr from_range_t from_range;
 			}
 		#endif
 
@@ -364,7 +362,7 @@
 
 		// To simplify conversion when allocator supplies non-raw pointers:
 		template <class destination_pointer_type, class source_pointer_type>
-		static PLF_CONSTFUNC destination_pointer_type pointer_cast(const source_pointer_type source_pointer) PLF_NOEXCEPT
+		inline PLF_CONSTFUNC destination_pointer_type pointer_cast(const source_pointer_type source_pointer) PLF_NOEXCEPT
 		{                              
 			#if defined(PLF_TYPE_TRAITS_SUPPORT) && defined(PLF_CPP20_SUPPORT) // constexpr necessary to avoid a branch for every call
 				if constexpr (std::is_trivially_constructible<destination_pointer_type>::value)
@@ -414,7 +412,7 @@
 	{
 		// A popcount which works pre-c++20:
 		template <typename storage_type>
-		static PLF_CONSTFUNC std::size_t popcount(storage_type value)
+		inline PLF_CONSTFUNC std::size_t popcount(storage_type value)
 		{
 			#ifdef PLF_CPP20_SUPPORT
 				return std::popcount(value);
@@ -431,7 +429,7 @@
 		// Hence if you use them, you must make sure value != 0 (for countr_one/countl_one, value != std::numeric_limits<storage_type>::max()). These implementations do not work with types > unsigned long long.
 
 		template<typename storage_type>
-		static PLF_CONSTFUNC std::size_t countr_zero(const storage_type value)
+		inline PLF_CONSTFUNC std::size_t countr_zero(const storage_type value)
 		{
 			#ifdef PLF_CPP20_SUPPORT
 				[[assume(value != 0)]];
@@ -486,7 +484,7 @@
 
 
 		template<typename storage_type>
-		static PLF_CONSTFUNC std::size_t countr_one(const storage_type value)
+		inline PLF_CONSTFUNC std::size_t countr_one(const storage_type value)
 		{
 			return plf::countr_zero(~value);
 		}
@@ -495,7 +493,7 @@
 
 
 		template<typename storage_type>
-		static PLF_CONSTFUNC std::size_t countl_zero(const storage_type value)
+		inline PLF_CONSTFUNC std::size_t countl_zero(const storage_type value)
 		{
 			#ifdef PLF_CPP20_SUPPORT
 				[[assume(value != 0)]];
@@ -553,7 +551,7 @@
 
 
 		template<typename storage_type>
-		static PLF_CONSTFUNC std::size_t countl_one(const storage_type value)
+		inline PLF_CONSTFUNC std::size_t countl_one(const storage_type value)
 		{
 			return plf::countl_zero(~value);
 		}
